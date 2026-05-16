@@ -153,24 +153,10 @@ class DataManager:
         with open(BidaConfig.ALERTS_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.alerts, f, indent=2, ensure_ascii=False)
     
-    def play_sound(self, sound_type):
-        try:
-            if sound_type == "bell":
-                for _ in range(3):
-                    winsound.Beep(1000, 300)
-                    time.sleep(0.1)
-                winsound.Beep(1500, 500)
-            elif sound_type == "order":
-                winsound.Beep(800, 100)
-                time.sleep(0.05)
-                winsound.Beep(1000, 100)
-            elif sound_type == "payment":
-                frequencies = [523, 659, 784, 1047]
-                for freq in frequencies:
-                    winsound.Beep(freq, 150)
-                    time.sleep(0.05)
-        except:
-            pass
+   # Xóa hàm cũ và thay bằng:
+def play_sound(self, sound_type):
+    """Tạm thời tắt âm thanh để tương thích với Linux"""
+    pass  # Không làm gì cả
     
     def add_alert(self, table_id, table_name):
         alert = {
