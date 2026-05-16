@@ -1037,6 +1037,9 @@ def main():
     setup_page()
     display_logo()
     
+    # Khởi tạo data_manager ở đây
+    dm = DataManager()  # Tạo instance mới
+    
     # Khởi tạo session state
     for key in ["mode", "owner_authenticated", "show_customer_detail", "show_customer_booking",
                 "show_owner_payment", "customer_selected_table", "customer_book_table", "owner_pay_table"]:
@@ -1071,7 +1074,7 @@ def main():
         if st.session_state.mode == "customer":
             st.markdown("### 👤 CHẾ ĐỘ: KHÁCH HÀNG")
             if not st.session_state.get("show_customer_detail", False):
-                display_customer_interface()
+                display_customer_interface()  # Cần truyền dm vào
                 display_customer_booking_form()
             else:
                 display_customer_table_detail()
@@ -1091,16 +1094,17 @@ def main():
                 tab1, tab2, tab3, tab4 = st.tabs(["🎯 QUẢN LÝ BÀN", "📊 DOANH THU", "📦 QUẢN LÝ KHO", "📝 QUẢN LÝ MENU"])
                 
                 with tab1:
-                    display_owner_interface()
-                    display_owner_payment_form()
+                    display_owner_interface(dm)  # Cần truyền dm vào
+                    display_owner_payment_form(dm)
                 with tab2:
-                    display_detailed_statistics()
+                    display_detailed_statistics(dm)
                 with tab3:
-                    display_stock_management()
+                    display_stock_management(dm)
                 with tab4:
-                    display_menu_management()
+                    display_menu_management(dm)
         
-        if data_manager.get_active_sessions() and st.session_state.mode == "owner":
+        # Dòng gây lỗi - cần sửa
+        if dm.get_active_sessions() and st.session_state.mode == "owner":
             time.sleep(2)
             st.rerun()
 
