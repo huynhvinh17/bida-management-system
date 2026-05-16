@@ -155,8 +155,14 @@ class DataManager:
     
    # Xóa hàm cũ và thay bằng:
 def play_sound(self, sound_type):
-    """Tạm thời tắt âm thanh để tương thích với Linux"""
-    pass  # Không làm gì cả
+    """Phát âm thanh bằng HTML5 - hoạt động trên mọi nền tảng"""
+    sounds = {
+        "bell": "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3",
+        "order": "https://www.soundjay.com/misc/sounds/notification-01.mp3",
+        "payment": "https://www.soundjay.com/misc/sounds/cash-register-01.mp3"
+    }
+    if sound_type in sounds:
+        st.markdown(f'<audio autoplay src="{sounds[sound_type]}"></audio>', unsafe_allow_html=True)
     
     def add_alert(self, table_id, table_name):
         alert = {
