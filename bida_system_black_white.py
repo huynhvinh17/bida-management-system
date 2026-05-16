@@ -1,4 +1,4 @@
-# bida_system_customer_fixed.py
+# bida_system_final_working.py
 import streamlit as st
 import pandas as pd
 import datetime
@@ -46,33 +46,14 @@ class MenuManager:
             "🥤 NƯỚC GIẢI KHÁT": {
                 "Coca Cola": {"price": 15000, "stock": 100, "unit": "chai"},
                 "Pepsi": {"price": 15000, "stock": 100, "unit": "chai"},
-                "Sprite": {"price": 15000, "stock": 80, "unit": "chai"},
-                "Fanta": {"price": 15000, "stock": 60, "unit": "chai"},
-                "Sting": {"price": 15000, "stock": 120, "unit": "chai"},
-                "Red Bull": {"price": 25000, "stock": 50, "unit": "lon"},
-                "Aquafina": {"price": 10000, "stock": 200, "unit": "chai"},
             },
             "🍺 BIA": {
                 "Heineken": {"price": 30000, "stock": 150, "unit": "lon"},
                 "Tiger": {"price": 30000, "stock": 120, "unit": "lon"},
-                "Saigon Special": {"price": 25000, "stock": 100, "unit": "lon"},
-                "Saigon Lager": {"price": 22000, "stock": 80, "unit": "lon"},
-                "333": {"price": 20000, "stock": 90, "unit": "lon"},
-                "Larue": {"price": 25000, "stock": 60, "unit": "lon"},
             },
             "☕ CÀ PHÊ & TRÀ": {
                 "Cà phê đen": {"price": 15000, "stock": 50, "unit": "ly"},
                 "Cà phê sữa": {"price": 18000, "stock": 50, "unit": "ly"},
-                "Trà đá": {"price": 5000, "stock": 100, "unit": "ly"},
-                "Trà chanh": {"price": 15000, "stock": 40, "unit": "ly"},
-                "Trà đào": {"price": 25000, "stock": 30, "unit": "ly"},
-            },
-            "🍜 ĐỒ ĂN NHANH": {
-                "Mì tôm": {"price": 20000, "stock": 30, "unit": "tô"},
-                "Xúc xích chiên": {"price": 15000, "stock": 50, "unit": "đĩa"},
-                "Khoai tây chiên": {"price": 25000, "stock": 40, "unit": "đĩa"},
-                "Bắp rang": {"price": 20000, "stock": 35, "unit": "phần"},
-                "Sandwich": {"price": 35000, "stock": 20, "unit": "cái"},
             }
         }
     
@@ -386,14 +367,6 @@ def setup_page():
         text-align: center;
         margin: 10px;
     }
-    .metric-card {
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    .stButton button { width: 100%; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -425,19 +398,17 @@ def display_ez_scoreboard(session, table_id, dm):
     if st.session_state[swap_key]:
         p1_color, p2_color = "#ffffff", "#ffd700"
         p1_bg, p2_bg = "#1a1a1a", "#1a1a00"
-        p1_icon, p2_icon = "⚪", "🟡"
     else:
         p1_color, p2_color = "#ffd700", "#ffffff"
         p1_bg, p2_bg = "#1a1a00", "#1a1a1a"
-        p1_icon, p2_icon = "🟡", "⚪"
     
-    # Hiển thị 3 cột
+    # 3 cột
     col1, col2, col3 = st.columns([2, 1, 2])
     
     with col1:
         st.markdown(f"""
         <div style='background: {p1_bg}; border-radius: 15px; padding: 15px; text-align: center; border: 2px solid {p1_color};'>
-            <h3 style='color: {p1_color};'>🏆 PLAYER 1 {p1_icon}</h3>
+            <h3 style='color: {p1_color};'>🏆 PLAYER 1</h3>
             <h2 style='color: {p1_color}; font-size: 14px;'>{session['player1_name']}</h2>
             <h1 style='font-size: 70px; color: {p1_color};'>{session['score']['player1']}</h1>
             <p style='color: {p1_color};'>Innings: {session['innings']['player1']}</p>
@@ -445,22 +416,21 @@ def display_ez_scoreboard(session, table_id, dm):
         </div>
         """, unsafe_allow_html=True)
         
-        # Nút điều khiển Player 1
         col_a, col_b, col_c, col_d = st.columns(4)
         with col_a:
-            if st.button("+1", key=f"p1_1_{table_id}", use_container_width=True):
+            if st.button("+1", key=f"p1_add1_{table_id}"):
                 dm.update_score(table_id, "player1", 1, True)
                 st.rerun()
         with col_b:
-            if st.button("+5", key=f"p1_5_{table_id}", use_container_width=True):
+            if st.button("+5", key=f"p1_add5_{table_id}"):
                 dm.update_score(table_id, "player1", 5, True)
                 st.rerun()
         with col_c:
-            if st.button("-1", key=f"p1_m1_{table_id}", use_container_width=True):
+            if st.button("-1", key=f"p1_sub1_{table_id}"):
                 dm.update_score(table_id, "player1", 1, False)
                 st.rerun()
         with col_d:
-            if st.button("-5", key=f"p1_m5_{table_id}", use_container_width=True):
+            if st.button("-5", key=f"p1_sub5_{table_id}"):
                 dm.update_score(table_id, "player1", 5, False)
                 st.rerun()
     
@@ -472,14 +442,14 @@ def display_ez_scoreboard(session, table_id, dm):
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("🔄 HOÁN ĐỔI", key=f"swap_{table_id}", use_container_width=True):
+        if st.button("🔄 HOAN DOI", key=f"swap_btn_{table_id}"):
             st.session_state[swap_key] = not st.session_state[swap_key]
             st.rerun()
     
     with col3:
         st.markdown(f"""
         <div style='background: {p2_bg}; border-radius: 15px; padding: 15px; text-align: center; border: 2px solid {p2_color};'>
-            <h3 style='color: {p2_color};'>🏆 PLAYER 2 {p2_icon}</h3>
+            <h3 style='color: {p2_color};'>🏆 PLAYER 2</h3>
             <h2 style='color: {p2_color}; font-size: 14px;'>{session['player2_name']}</h2>
             <h1 style='font-size: 70px; color: {p2_color};'>{session['score']['player2']}</h1>
             <p style='color: {p2_color};'>Innings: {session['innings']['player2']}</p>
@@ -487,70 +457,67 @@ def display_ez_scoreboard(session, table_id, dm):
         </div>
         """, unsafe_allow_html=True)
         
-        # Nút điều khiển Player 2
         col_a, col_b, col_c, col_d = st.columns(4)
         with col_a:
-            if st.button("+1", key=f"p2_1_{table_id}", use_container_width=True):
+            if st.button("+1", key=f"p2_add1_{table_id}"):
                 dm.update_score(table_id, "player2", 1, True)
                 st.rerun()
         with col_b:
-            if st.button("+5", key=f"p2_5_{table_id}", use_container_width=True):
+            if st.button("+5", key=f"p2_add5_{table_id}"):
                 dm.update_score(table_id, "player2", 5, True)
                 st.rerun()
         with col_c:
-            if st.button("-1", key=f"p2_m1_{table_id}", use_container_width=True):
+            if st.button("-1", key=f"p2_sub1_{table_id}"):
                 dm.update_score(table_id, "player2", 1, False)
                 st.rerun()
         with col_d:
-            if st.button("-5", key=f"p2_m5_{table_id}", use_container_width=True):
+            if st.button("-5", key=f"p2_sub5_{table_id}"):
                 dm.update_score(table_id, "player2", 5, False)
                 st.rerun()
 
 def display_customer_interface(dm):
     st.markdown("### 🎯 CHỌN BÀN BIDA")
-    active_sessions = {s["table_id"]: s for s in dm.get_active_sessions()}
+    active = {s["table_id"]: s for s in dm.get_active_sessions()}
     
-    # Hiển thị 2 hàng, mỗi hàng 4 bàn
     for row in range(2):
         cols = st.columns(4)
         for i in range(4):
-            table_id = row * 4 + i + 1
-            if table_id > 8:
-                break
+            tid = row * 4 + i + 1
+            if tid > 8: break
             with cols[i]:
-                table = BidaConfig.TABLES[table_id]
-                if table_id in active_sessions:
-                    s = active_sessions[table_id]
+                t = BidaConfig.TABLES[tid]
+                if tid in active:
+                    s = active[tid]
                     mins = int(s['elapsed_minutes'])
                     st.markdown(f"""
                     <div class="occupied-card">
-                        <h3>🎱 {table['name']}</h3>
+                        <h3>🎱 {t['name']}</h3>
                         <div style="font-size: 24px; color: #0f0;">{mins:02d}:00</div>
                         <div>🏆 {s['score']['player1']} - {s['score']['player2']}</div>
                         <div>🔴 ĐANG CHƠI</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button(f"📱 VÀO BÀN", key=f"cust_view_{table_id}"):
-                        st.session_state.customer_selected_table = table_id
+                    if st.button(f"📱 VAO BAN", key=f"view_{tid}"):
+                        st.session_state.customer_selected_table = tid
                         st.session_state.show_customer_detail = True
                 else:
                     st.markdown(f"""
                     <div class="available-card">
-                        <h3>🎱 {table['name']}</h3>
-                        <div>💰 {table['price_per_hour']:,}đ/h</div>
+                        <h3>🎱 {t['name']}</h3>
+                        <div>💰 {t['price_per_hour']:,}đ/h</div>
                         <div>✅ TRỐNG</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button(f"🎯 ĐẶT BÀN", key=f"cust_book_{table_id}"):
-                        st.session_state.customer_book_table = table_id
+                    if st.button(f"🎯 DAT BAN", key=f"book_{tid}"):
+                        st.session_state.customer_book_table = tid
                         st.session_state.show_customer_booking = True
 
 def display_customer_booking_form(dm):
     if st.session_state.get("show_customer_booking", False):
         with st.expander("🎯 ĐẶT BÀN", expanded=True):
-            table_id = st.session_state.customer_book_table
-            table = BidaConfig.TABLES[table_id]
-            st.info(f"🏠 **{table['name']}** - {table['price_per_hour']:,}đ/giờ")
+            tid = st.session_state.customer_book_table
+            t = BidaConfig.TABLES[tid]
+            st.info(f"🏠 **{t['name']}** - {t['price_per_hour']:,}đ/giờ")
             
             col1, col2 = st.columns(2)
             with col1:
@@ -560,13 +527,13 @@ def display_customer_booking_form(dm):
                 st.markdown(f"""
                 <div style="background: #2e7d32; padding: 15px; border-radius: 10px;">
                     <b>💰 GIÁ BÀN</b><br>
-                    {table['price_per_hour']:,}đ/giờ = {table['price_per_hour']/60:.0f}đ/phút
+                    {t['price_per_hour']:,}đ/giờ = {t['price_per_hour']/60:.0f}đ/phút
                 </div>
                 """, unsafe_allow_html=True)
             
-            if st.button("✅ XÁC NHẬN", key="confirm_booking", use_container_width=True):
+            if st.button("✅ XÁC NHẬN", key="confirm_booking"):
                 if p1 and p2:
-                    dm.start_session(table_id, p1, "customer", p1, p2)
+                    dm.start_session(tid, p1, "customer", p1, p2)
                     st.success(f"✅ ĐẶT BÀN THÀNH CÔNG!\n{p1} vs {p2}")
                     st.balloons()
                     st.session_state.show_customer_booking = False
@@ -575,9 +542,51 @@ def display_customer_booking_form(dm):
                 else:
                     st.error("❌ Nhập tên 2 người chơi!")
             
-            if st.button("❌ HỦY", key="cancel_booking", use_container_width=True):
+            if st.button("❌ HỦY", key="cancel_booking"):
                 st.session_state.show_customer_booking = False
                 st.rerun()
+
+def display_order_section(table_id, session, dm):
+    st.markdown("### 🍽️ GỌI MÓN")
+    
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        cat = st.selectbox("Danh mục", list(dm.menu_manager.menu.keys()), key=f"cat_{table_id}")
+    with col2:
+        if cat:
+            items = list(dm.menu_manager.menu[cat].keys())
+            item = st.selectbox("Món", items, key=f"item_{table_id}")
+    with col3:
+        qty = st.number_input("SL", min_value=1, max_value=20, value=1, key=f"qty_{table_id}")
+    
+    if cat and item:
+        info = dm.menu_manager.menu[cat][item]
+        st.caption(f"📦 Tồn: {info['stock']} {info['unit']} | 💰 {info['price']:,}đ")
+        if info['stock'] >= qty:
+            if st.button(f"➕ THÊM MÓN", key=f"add_{table_id}"):
+                success, msg = dm.add_order(table_id, cat, item, qty, info['price'])
+                if success:
+                    st.success(msg)
+                    time.sleep(0.5)
+                    st.rerun()
+                else:
+                    st.error(msg)
+        else:
+            st.error(f"❌ Không đủ hàng! Còn {info['stock']} {info['unit']}")
+    
+    orders = session.get("orders", [])
+    if orders:
+        st.markdown("### 📋 MÓN ĐÃ GỌI")
+        for idx, o in enumerate(orders):
+            c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
+            with c1: st.write(f"🍽️ {o['item']}")
+            with c2: st.write(f"x{o['quantity']}")
+            with c3: st.write(f"{o['total']:,}đ")
+            with c4:
+                if st.button("🗑️", key=f"del_{table_id}_{idx}"):
+                    dm.remove_order(table_id, idx)
+                    st.rerun()
+        st.info(f"🍽️ Tổng tiền món: {dm.get_food_total(table_id):,}đ")
 
 def display_customer_table_detail(dm):
     if st.session_state.get("show_customer_detail", False) and st.session_state.get("customer_selected_table"):
@@ -588,7 +597,6 @@ def display_customer_table_detail(dm):
             s = active[tid]
             st.markdown(f"## 🎱 {BidaConfig.TABLES[tid]['name']}")
             
-            # Tạo 3 tab
             tab1, tab2, tab3 = st.tabs(["🎯 TỶ SỐ", "🍽️ GỌI MÓN", "💰 HÓA ĐƠN"])
             
             with tab1:
@@ -605,73 +613,22 @@ def display_customer_table_detail(dm):
                 
                 st.markdown(f"""
                 | Khoản mục | Số tiền |
-                |-----------|---------|
+            |-----------|---------|
                 | ⏱️ Tiền bàn ({mins} phút) | {table_fee:,}đ |
                 | 🍽️ Tiền món | {food_total:,}đ |
                 | **💰 TỔNG CỘNG** | **{table_fee + food_total:,}đ** |
                 """)
                 
-                if st.button("🔔 BÁO TÍNH TIỀN", key=f"bill_{tid}", use_container_width=True):
+                if st.button("🔔 BÁO TÍNH TIỀN", key=f"bill_{tid}"):
                     dm.add_alert(tid, BidaConfig.TABLES[tid]['name'])
                     st.success("✅ Đã gửi yêu cầu! Nhân viên sẽ đến ngay!")
                     st.balloons()
                     time.sleep(1)
             
-            if st.button("🔙 QUAY LẠI", key="back_cust", use_container_width=True):
+            if st.button("🔙 QUAY LẠI", key="back_cust"):
                 st.session_state.show_customer_detail = False
                 st.session_state.customer_selected_table = None
                 st.rerun()
-        else:
-            st.error("Bàn này không còn hoạt động!")
-            st.session_state.show_customer_detail = False
-            st.rerun()
-
-def display_order_section(table_id, session, dm):
-    st.markdown("### 🍽️ GỌI MÓN")
-    
-    col1, col2, col3 = st.columns([2, 1, 1])
-    with col1:
-        categories = list(dm.menu_manager.menu.keys())
-        cat = st.selectbox("Danh mục", categories, key=f"cat_{table_id}")
-    with col2:
-        if cat:
-            items = list(dm.menu_manager.menu[cat].keys())
-            item = st.selectbox("Món", items, key=f"item_{table_id}")
-    with col3:
-        qty = st.number_input("Số lượng", min_value=1, max_value=20, value=1, key=f"qty_{table_id}")
-    
-    if cat and item:
-        info = dm.menu_manager.menu[cat][item]
-        st.caption(f"📦 Tồn kho: {info['stock']} {info['unit']} | 💰 {info['price']:,}đ")
-        
-        if info['stock'] >= qty:
-            if st.button(f"➕ THÊM MÓN", key=f"add_{table_id}", use_container_width=True):
-                success, msg = dm.add_order(table_id, cat, item, qty, info['price'])
-                if success:
-                    st.success(msg)
-                    time.sleep(0.5)
-                    st.rerun()
-                else:
-                    st.error(msg)
-        else:
-            st.error(f"❌ Không đủ hàng! Chỉ còn {info['stock']} {info['unit']}")
-    
-    # Hiển thị danh sách món đã gọi
-    orders = session.get("orders", [])
-    if orders:
-        st.markdown("### 📋 MÓN ĐÃ GỌI")
-        for idx, o in enumerate(orders):
-            c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-            with c1: st.write(f"🍽️ {o['item']}")
-            with c2: st.write(f"x{o['quantity']}")
-            with c3: st.write(f"{o['total']:,}đ")
-            with c4:
-                if st.button("🗑️", key=f"del_{table_id}_{idx}"):
-                    dm.remove_order(table_id, idx)
-                    st.rerun()
-        
-        food_total = dm.get_food_total(table_id)
-        st.info(f"🍽️ Tổng tiền món: {food_total:,}đ")
 
 def display_owner_interface(dm):
     st.markdown("### 🎯 QUẢN LÝ BÀN BIDA")
@@ -681,17 +638,17 @@ def display_owner_interface(dm):
     if alerts:
         st.markdown("### 🔔 YÊU CẦU TÍNH TIỀN")
         for i, a in enumerate(alerts):
-            col1, col2, col3 = st.columns([3, 1, 1])
-            with col1:
+            c1, c2, c3 = st.columns([3, 1, 1])
+            with c1:
                 st.warning(f"🛎️ **{a['table_name']}** - {a['time'][11:16]}")
-            with col2:
-                if st.button(f"💰 TÍNH TIỀN", key=f"pay_alert_{i}", use_container_width=True):
+            with c2:
+                if st.button(f"💰 TÍNH TIỀN", key=f"pay_alert_{i}"):
                     st.session_state.owner_pay_table = a['table_id']
                     st.session_state.show_owner_payment = True
                     dm.remove_alert(i)
                     st.rerun()
-            with col3:
-                if st.button(f"✅ BỎ QUA", key=f"ignore_{i}", use_container_width=True):
+            with c3:
+                if st.button(f"✅ BỎ QUA", key=f"ignore_{i}"):
                     dm.remove_alert(i)
                     st.rerun()
         st.markdown("---")
@@ -700,8 +657,7 @@ def display_owner_interface(dm):
         cols = st.columns(4)
         for i in range(4):
             tid = row * 4 + i + 1
-            if tid > 8:
-                break
+            if tid > 8: break
             with cols[i]:
                 t = BidaConfig.TABLES[tid]
                 if tid in active:
@@ -714,7 +670,7 @@ def display_owner_interface(dm):
                         <div>🏆 {s['score']['player1']} - {s['score']['player2']}</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button(f"💰 TIỀN", key=f"owner_pay_{tid}", use_container_width=True):
+                    if st.button(f"💰 TIỀN", key=f"pay_{tid}"):
                         st.session_state.owner_pay_table = tid
                         st.session_state.show_owner_payment = True
                         st.rerun()
@@ -746,7 +702,7 @@ def display_owner_payment_form(dm):
                 **🍽️ Tiền món:** {food_total:,}đ  
                 **💵 TỔNG CỘNG:** {table_fee + food_total:,}đ
                 """)
-                if st.button(f"✅ XÁC NHẬN THANH TOÁN", key=f"confirm_pay_{tid}", use_container_width=True):
+                if st.button(f"✅ XÁC NHẬN THANH TOÁN", key=f"confirm_pay_{tid}"):
                     result = dm.end_session(tid)
                     if result:
                         st.success(f"✅ THANH TOÁN THÀNH CÔNG! Tổng: {result['total_amount']:,}đ")
@@ -772,7 +728,7 @@ def display_stock_management(dm):
     with col2:
         qty = st.number_input("Số lượng", min_value=1, max_value=1000, value=50)
     with col3:
-        if st.button("📦 NHẬP HÀNG", use_container_width=True):
+        if st.button("📦 NHẬP HÀNG", key="import_stock"):
             if dm.menu_manager.add_stock(item, qty):
                 st.success(f"✅ Đã nhập {qty} {item}")
                 st.rerun()
@@ -796,7 +752,7 @@ def display_menu_management(dm):
         with col3:
             unit = st.selectbox("Đơn vị", ["chai", "lon", "ly", "tô", "đĩa"], key="new_unit")
         with col4:
-            if st.button("➕ THÊM", key="do_add", use_container_width=True):
+            if st.button("➕ THÊM", key="do_add"):
                 if new_name and dm.menu_manager.add_item(cat, new_name, price, stock, unit):
                     st.success(f"✅ Đã thêm {new_name}")
                     st.rerun()
@@ -815,13 +771,13 @@ def display_menu_management(dm):
             col1, col2 = st.columns(2)
             with col1:
                 new_price = st.number_input("Giá mới", value=curr["price"], step=1000, key="new_price_edit")
-                if st.button("💾 CẬP NHẬT GIÁ", key="update_price", use_container_width=True):
+                if st.button("💾 CẬP NHẬT GIÁ", key="update_price"):
                     dm.menu_manager.update_item_price(cat, item, new_price)
                     st.success("✅ Đã cập nhật giá")
                     st.rerun()
             with col2:
                 new_stock = st.number_input("Tồn kho mới", value=curr["stock"], step=1, key="new_stock_edit")
-                if st.button("📦 CẬP NHẬT TỒN KHO", key="update_stock", use_container_width=True):
+                if st.button("📦 CẬP NHẬT TỒN KHO", key="update_stock"):
                     dm.menu_manager.update_item_stock(cat, item, new_stock)
                     st.success("✅ Đã cập nhật tồn kho")
                     st.rerun()
@@ -836,7 +792,7 @@ def display_menu_management(dm):
                 items = list(dm.menu_manager.menu[cat].keys())
                 item = st.selectbox("Chọn món", ["-- Chọn --"] + items, key="del_item")
         if cat and item and item != "-- Chọn --":
-            if st.button("🗑️ XÓA MÓN", key="do_delete", use_container_width=True):
+            if st.button("🗑️ XÓA MÓN", key="do_delete"):
                 if dm.menu_manager.delete_item(cat, item):
                     st.success(f"✅ Đã xóa {item}")
                     st.rerun()
@@ -891,15 +847,15 @@ def main():
         st.markdown("## 🎯 CHỌN CHẾ ĐỘ")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("👤 KHÁCH HÀNG", use_container_width=True):
+            if st.button("👤 KHACH HANG", key="mode_customer", use_container_width=True):
                 st.session_state.mode = "customer"
                 st.rerun()
         with c2:
-            if st.button("👑 CHỦ QUÁN", use_container_width=True):
+            if st.button("👑 CHU QUAN", key="mode_owner", use_container_width=True):
                 st.session_state.mode = "owner"
                 st.rerun()
     else:
-        if st.button("🔄 ĐỔI CHẾ ĐỘ", use_container_width=True):
+        if st.button("🔄 DOI CHE DO", key="change_mode", use_container_width=True):
             st.session_state.mode = None
             st.session_state.owner_authenticated = False
             st.rerun()
@@ -916,16 +872,16 @@ def main():
         else:
             if not st.session_state.owner_authenticated:
                 st.markdown("### 🔐 NHẬP MẬT KHẨU")
-                pwd = st.text_input("Mật khẩu:", type="password")
-                if st.button("🔓 XÁC NHẬN", use_container_width=True):
+                pwd = st.text_input("Mat khau:", type="password")
+                if st.button("🔓 XAC NHAN", key="check_password"):
                     if pwd == BidaConfig.OWNER_PASSWORD:
                         st.session_state.owner_authenticated = True
                         st.rerun()
                     else:
-                        st.error("❌ Sai mật khẩu!")
+                        st.error("❌ Sai mat khau!")
             else:
                 st.markdown("### 👑 CHẾ ĐỘ: CHỦ QUÁN")
-                tabs = st.tabs(["🎯 QUẢN LÝ BÀN", "📊 DOANH THU", "📦 QUẢN LÝ KHO", "📝 QUẢN LÝ MENU"])
+                tabs = st.tabs(["🎯 QUAN LY BAN", "📊 DOANH THU", "📦 QUAN LY KHO", "📝 QUAN LY MENU"])
                 with tabs[0]:
                     display_owner_interface(dm)
                     display_owner_payment_form(dm)
