@@ -32,6 +32,7 @@ class BidaConfig:
     SESSIONS_FILE = f"{DATA_FOLDER}/sessions.json"
     ALERTS_FILE = f"{DATA_FOLDER}/alerts.json"
     MENU_FILE = f"{DATA_FOLDER}/menu.json"
+    LEGENDS_FILE = f"{DATA_FOLDER}/legends.json"  # THÊM DÒNG NÀY
 
 # ================== MENU MANAGER ==================
 class MenuManager:
@@ -97,11 +98,61 @@ class MenuManager:
                 return True
         return False
 
+# ================== QUẢN LÝ HUYỀN THOẠI (THÊM MỚI) ==================
+class LegendManager:
+    def __init__(self):
+        self.legends_file = BidaConfig.LEGENDS_FILE
+        self.legends = self.load_legends()
+    
+    def load_legends(self):
+        if os.path.exists(self.legends_file):
+            with open(self.legends_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        # Mặc định 10 huyền thoại rỗng
+        return [{"rank": i+1, "name": "Đang chờ", "score": 0, "date": "", "table": "", "opponent": ""} for i in range(10)]
+    
+    def save_legends(self):
+        with open(self.legends_file, 'w', encoding='utf-8') as f:
+            json.dump(self.legends, f, indent=2, ensure_ascii=False)
+    
+    def check_and_add_legend(self, winner_name, winner_score, table_name, opponent_name=""):
+        """Kiểm tra nếu điểm cao hơn huyền thoại thứ 10 thì thêm vào"""
+        # Tìm vị trí xứng đáng (cao hơn ai?)
+        position = None
+        for i, legend in enumerate(self.legends):
+            if winner_score > legend["score"]:
+                position = i
+                break
+        
+        if position is not None:
+            # Chèn vào vị trí, đẩy các huyền thoại cũ xuống
+            new_legend = {
+                "rank": position + 1,
+                "name": winner_name,
+                "score": winner_score,
+                "date": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "table": table_name,
+                "opponent": opponent_name
+            }
+            self.legends.insert(position, new_legend)
+            # Giữ lại đúng 10 người
+            self.legends = self.legends[:10]
+            # Cập nhật lại rank
+            for i, leg in enumerate(self.legends):
+                leg["rank"] = i + 1
+            self.save_legends()
+            return True, position + 1
+        return False, None
+    
+    def get_top_legends(self, limit=10):
+        return self.legends[:limit]
+
 # ================== QUẢN LÝ DỮ LIỆU ==================
 class DataManager:
     def __init__(self):
         os.makedirs(BidaConfig.DATA_FOLDER, exist_ok=True)
         self.menu_manager = MenuManager()
+        self.legend_manager = LegendManager()  # THÊM DÒNG NÀY
         self.sessions = self.load_sessions()
         self.alerts = self.load_alerts()
         
@@ -262,6 +313,38 @@ class DataManager:
                 session["food_fee"] = food_fee
                 session["total_amount"] = table_fee + food_fee
                 session["minutes_played"] = round(minutes_played, 1)
+                
+                # ========== PHẦN THÊM: LƯU HUYỀN THOẠI ==========
+                score1 = session.get("score", {}).get("player1", 0)
+                score2 = session.get("score", {}).get("player2", 0)
+                player1_name = session.get("player1_name", "Player 1")
+                player2_name = session.get("player2_name", "Player 2")
+                table_name = session.get("table_name", f"Bàn {table_id}")
+                
+                # Xác định người thắng
+                if score1 > score2:
+                    winner_name = player1_name
+                    winner_score = score1
+                    loser_name = player2_name
+                elif score2 > score1:
+                    winner_name = player2_name
+                    winner_score = score2
+                    loser_name = player1_name
+                else:
+                    winner_name = f"HÒA ({player1_name} vs {player2_name})"
+                    winner_score = score1
+                    loser_name = ""
+                
+                # Lưu vào bảng huyền thoại
+                is_legend, rank = self.legend_manager.check_and_add_legend(
+                    winner_name, winner_score, table_name, loser_name
+                )
+                
+                if is_legend:
+                    session["became_legend"] = True
+                    session["legend_rank"] = rank
+                # ========== KẾT THÚC PHẦN THÊM ==========
+                
                 BidaConfig.TABLES[table_id]["status"] = "available"
                 self.save_sessions()
                 self.play_sound("payment")
@@ -613,7 +696,7 @@ def display_customer_table_detail(dm):
                 
                 st.markdown(f"""
                 | Khoản mục | Số tiền |
-            |-----------|---------|
+                |-----------|---------|
                 | ⏱️ Tiền bàn ({mins} phút) | {table_fee:,}đ |
                 | 🍽️ Tiền món | {food_total:,}đ |
                 | **💰 TỔNG CỘNG** | **{table_fee + food_total:,}đ** |
@@ -627,8 +710,7 @@ def display_customer_table_detail(dm):
             
             if st.button("🔙 QUAY LẠI", key="back_cust"):
                 st.session_state.show_customer_detail = False
-                st.session_state.customer_selected_table = None
-                st.rerun()
+                st.session_state.customer_selected_table = None                st.rerun()
 
 def display_owner_interface(dm):
     st.markdown("### 🎯 QUẢN LÝ BÀN BIDA")
@@ -706,6 +788,16 @@ def display_owner_payment_form(dm):
                     result = dm.end_session(tid)
                     if result:
                         st.success(f"✅ THANH TOÁN THÀNH CÔNG! Tổng: {result['total_amount']:,}đ")
+                        # HIỂN THỊ THÔNG BÁO HUYỀN THOẠI NẾU CÓ
+                        if result.get("became_legend", False):
+                            st.balloons()
+                            st.markdown(f"""
+                            <div style='background: linear-gradient(135deg, #ffd700, #ff8c00); 
+                                        padding: 20px; border-radius: 20px; text-align: center; margin: 10px 0;'>
+                                <h1 style='color: #000;'>🏆 HUYỀN THOẠI MỚI! 🏆</h1>
+                                <h2 style='color: #000;'>Hạng #{result['legend_rank']} mọi thời đại!</h2>
+                            </div>
+                            """, unsafe_allow_html=True)
                         st.balloons()
                         st.session_state.show_owner_payment = False
                         st.session_state.owner_pay_table = None
@@ -817,6 +909,61 @@ def display_detailed_statistics(dm):
         fig.update_layout(barmode='stack', title="Doanh thu theo bàn", height=400)
         st.plotly_chart(fig, use_container_width=True)
 
+# ================== HIỂN THỊ BẢNG HUYỀN THOẠI (THÊM MỚI) ==================
+def display_legend_board(dm):
+    st.markdown("### 🏆 BẢNG HUYỀN THOẠI BÀN BIDA 🏆")
+    st.markdown("*Những người chơi đạt điểm số cao nhất mọi thời đại*")
+    
+    legends = dm.legend_manager.get_top_legends()
+    
+    # Tạo bảng đẹp
+    cols = st.columns([1, 3, 2, 2, 2])
+    with cols[0]: st.markdown("**🏅 Hạng**")
+    with cols[1]: st.markdown("**👤 Tên huyền thoại**")
+    with cols[2]: st.markdown("**🎯 Điểm số**")
+    with cols[3]: st.markdown("**🎱 Bàn**")
+    with cols[4]: st.markdown("**📅 Ngày**")
+    st.markdown("---")
+    
+    for legend in legends:
+        if legend["score"] > 0:
+            # Màu sắc theo hạng
+            if legend["rank"] == 1:
+                medal = "🥇"
+                bg = "#1a1a00"
+            elif legend["rank"] == 2:
+                medal = "🥈"
+                bg = "#1a1a1a"
+            elif legend["rank"] == 3:
+                medal = "🥉"
+                bg = "#1a1a1a"
+            else:
+                medal = f"#{legend['rank']}"
+                bg = "#0a0a0a"
+            
+            # Thêm opponent nếu có
+            opponent_text = f" (vs {legend['opponent']})" if legend.get('opponent') else ""
+            
+            st.markdown(f"""
+            <div style='background: {bg}; border-radius: 10px; padding: 8px; margin: 4px 0; border-left: 4px solid #ffd700;'>
+                <table style='width: 100%; color: white;'>
+                    <tr>
+                        <td style='width: 10%;'><b>{medal}</b></td>
+                        <td style='width: 30%;'>🏆 {legend['name']}{opponent_text}</td>
+                        <td style='width: 20%; color: #ffd700;'><b>{legend['score']:,} điểm</b></td>
+                        <td style='width: 20%;'>🎱 {legend['table']}</td>
+                        <td style='width: 20%;'>📅 {legend['date']}</td>
+                    </tr>
+                </table>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.caption(f"#{legend['rank']}. Chưa có huyền thoại — Hãy là người đầu tiên!")
+    
+    # Thêm nút làm mới
+    if st.button("🔄 LÀM MỚI BẢNG XẾP HẠNG", key="refresh_legend"):
+        st.rerun()
+
 # ================== MAIN ==================
 def main():
     setup_page()
@@ -881,15 +1028,18 @@ def main():
                         st.error("❌ Sai mat khau!")
             else:
                 st.markdown("### 👑 CHẾ ĐỘ: CHỦ QUÁN")
-                tabs = st.tabs(["🎯 QUAN LY BAN", "📊 DOANH THU", "📦 QUAN LY KHO", "📝 QUAN LY MENU"])
+                # THÊM TAB HUYỀN THOẠI VÀO ĐÂY
+                tabs = st.tabs(["🎯 QUAN LY BAN", "🏆 HUYEN THOAI", "📊 DOANH THU", "📦 QUAN LY KHO", "📝 QUAN LY MENU"])
                 with tabs[0]:
                     display_owner_interface(dm)
                     display_owner_payment_form(dm)
-                with tabs[1]:
-                    display_detailed_statistics(dm)
+                with tabs[1]:  # TAB HUYỀN THOẠI
+                    display_legend_board(dm)
                 with tabs[2]:
-                    display_stock_management(dm)
+                    display_detailed_statistics(dm)
                 with tabs[3]:
+                    display_stock_management(dm)
+                with tabs[4]:
                     display_menu_management(dm)
         
         if dm.get_active_sessions() and st.session_state.mode == "owner":
