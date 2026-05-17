@@ -134,13 +134,17 @@ class DataManager:
             json.dump(self.alerts, f, indent=2, ensure_ascii=False)
     
     def play_sound(self, sound_type):
+        """Phát âm thanh trên trình duyệt"""
         sounds = {
             "bell": "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3",
             "order": "https://www.soundjay.com/misc/sounds/notification-01.mp3",
-            "payment": "https://www.soundjay.com/misc/sounds/cash-register-01.mp3"
+            "payment": "https://www.soundjay.com/misc/sounds/cash-register-01.mp3",
+            "booking": "https://www.soundjay.com/misc/sounds/button-09.mp3",
+            "alert": "https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3"
         }
         if sound_type in sounds:
-            st.markdown(f'<audio autoplay src="{sounds[sound_type]}"></audio>', unsafe_allow_html=True)
+            sound_html = f'<audio autoplay style="display:none;"><source src="{sounds[sound_type]}" type="audio/mpeg"></audio>'
+            st.markdown(sound_html, unsafe_allow_html=True)
     
     def add_alert(self, table_id, table_name):
         alert = {
@@ -151,7 +155,7 @@ class DataManager:
         }
         self.alerts.append(alert)
         self.save_alerts()
-        self.play_sound("bell")
+        self.play_sound("alert")
         return True
     
     def remove_alert(self, alert_index):
@@ -185,6 +189,7 @@ class DataManager:
         self.sessions.append(session)
         BidaConfig.TABLES[table_id]["status"] = "occupied"
         self.save_sessions()
+        self.play_sound("booking")
         return session_id
     
     def add_order(self, table_id, category, item, quantity, price):
@@ -402,7 +407,6 @@ def display_ez_scoreboard(session, table_id, dm):
         p1_color, p2_color = "#ffd700", "#ffffff"
         p1_bg, p2_bg = "#1a1a00", "#1a1a1a"
     
-    # 3 cột
     col1, col2, col3 = st.columns([2, 1, 2])
     
     with col1:
@@ -613,7 +617,7 @@ def display_customer_table_detail(dm):
                 
                 st.markdown(f"""
                 | Khoản mục | Số tiền |
-            |-----------|---------|
+                |-----------|---------|
                 | ⏱️ Tiền bàn ({mins} phút) | {table_fee:,}đ |
                 | 🍽️ Tiền món | {food_total:,}đ |
                 | **💰 TỔNG CỘNG** | **{table_fee + food_total:,}đ** |
